@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     color-scheme: light;
@@ -44,7 +45,6 @@
     --radius-xl: 20px;
   }
 
-  /* Dark mode — activated by adding data-theme="dark" to the html element */
   html[data-theme="dark"] {
     color-scheme: dark;
     --bg: #18171a;
@@ -97,12 +97,7 @@
     padding: 2.5rem 1.5rem 4rem;
   }
 
-  h1 {
-    font-size: 28px;
-    font-weight: 500;
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
+  h1 { font-size: 28px; font-weight: 500; margin: 0; letter-spacing: -0.02em; }
   h2 { font-size: 17px; font-weight: 500; margin: 0; letter-spacing: -0.01em; }
   p { margin: 0; }
 
@@ -119,49 +114,26 @@
     transition: all 0.15s ease;
     letter-spacing: -0.005em;
   }
-  button:hover {
-    background: var(--surface-hover);
-    border-color: var(--border-med);
-  }
+  button:hover { background: var(--surface-hover); border-color: var(--border-med); }
   button:active { transform: scale(0.97); }
-  button.primary {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-  }
+  button.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
   button.primary:hover { opacity: 0.88; background: var(--text); }
-  button.ghost {
-    background: transparent;
-    border-color: transparent;
-    color: var(--text-muted);
-  }
+  button.ghost { background: transparent; border-color: transparent; color: var(--text-muted); }
   button.ghost:hover { background: var(--surface-alt); color: var(--text); }
 
-  /* Theme toggle */
   .theme-toggle {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 36px; height: 36px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
     border-radius: 50%;
     background: var(--surface);
     border: 1px solid var(--border-med);
     color: var(--text-muted);
   }
-  .theme-toggle:hover {
-    background: var(--surface-hover);
-    color: var(--text);
-  }
+  .theme-toggle:hover { background: var(--surface-hover); color: var(--text); }
   .theme-toggle svg {
-    width: 16px;
-    height: 16px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    width: 16px; height: 16px;
+    stroke: currentColor; stroke-width: 2; fill: none;
+    stroke-linecap: round; stroke-linejoin: round;
   }
 
   input[type="text"], input[type="number"] {
@@ -181,159 +153,95 @@
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
 
-  /* ===== Header ===== */
   .header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 16px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 2rem; flex-wrap: wrap; gap: 16px;
   }
-  .user-info {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-top: 6px;
-    font-weight: 400;
-  }
+  .user-info { font-size: 13px; color: var(--text-muted); margin-top: 6px; font-weight: 400; }
   .user-info strong { font-weight: 500; color: var(--text); }
-  .header-actions {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+  .header-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+  .sync-indicator {
+    font-size: 11px;
+    color: var(--text-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 8px;
+  }
+  .sync-indicator.syncing { color: var(--accent); }
+  .sync-indicator.error { color: var(--danger); }
+  .sync-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+  .sync-indicator.syncing .sync-dot {
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
   }
 
-  /* ===== Tabs ===== */
   .tabs {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 2rem;
+    display: flex; gap: 2px; margin-bottom: 2rem;
     background: var(--surface-alt);
     padding: 4px;
     border-radius: var(--radius);
     width: fit-content;
   }
   .tab-btn {
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    background: transparent;
-    border: none;
+    padding: 8px 16px; font-size: 13px; font-weight: 500;
+    background: transparent; border: none;
     color: var(--text-muted);
-    border-radius: 7px;
-    cursor: pointer;
+    border-radius: 7px; cursor: pointer;
     transition: all 0.15s;
   }
   .tab-btn:hover { color: var(--text); background: transparent; }
-  .tab-btn.active {
-    background: var(--surface);
-    color: var(--text);
-    box-shadow: var(--shadow-sm);
-  }
+  .tab-btn.active { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
 
-  /* ===== Progress rings ===== */
   .rings-section {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 2rem;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 2rem;
   }
   .ring-card {
     background: var(--surface);
     border-radius: var(--radius-xl);
     padding: 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    display: flex; align-items: center; gap: 14px;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border);
   }
-  .ring-wrap {
-    position: relative;
-    flex-shrink: 0;
-  }
+  .ring-wrap { position: relative; flex-shrink: 0; }
   .ring-center {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
     pointer-events: none;
   }
-  .ring-pct {
-    font-size: 20px;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-  .ring-pct-sub {
-    font-size: 9px;
-    color: var(--text-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-top: 2px;
-  }
+  .ring-pct { font-size: 20px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
+  .ring-pct-sub { font-size: 9px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
   .ring-info { flex: 1; min-width: 0; }
-  .ring-label {
-    font-size: 10px;
-    color: var(--text-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 500;
-  }
-  .ring-title {
-    font-size: 16px;
-    font-weight: 500;
-    margin-top: 3px;
-    letter-spacing: -0.01em;
-  }
-  .ring-meta {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
+  .ring-label { font-size: 10px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
+  .ring-title { font-size: 16px; font-weight: 500; margin-top: 3px; letter-spacing: -0.01em; }
+  .ring-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
   .ring-accent-streak {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    padding: 3px 8px;
-    background: var(--streak-bg);
-    color: var(--streak-text);
-    border-radius: 100px;
-    margin-top: 8px;
-    font-weight: 500;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; padding: 3px 8px;
+    background: var(--streak-bg); color: var(--streak-text);
+    border-radius: 100px; margin-top: 8px; font-weight: 500;
   }
 
-  /* ===== Week nav ===== */
   .week-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 6px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; padding: 6px;
   }
   .week-label-wrap { text-align: center; }
-  .week-label {
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-  .week-sub {
-    font-size: 11px;
-    color: var(--text-soft);
-    margin-top: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
+  .week-label { font-size: 15px; font-weight: 500; letter-spacing: -0.01em; }
+  .week-sub { font-size: 11px; color: var(--text-soft); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
   .week-nav-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 32px; height: 32px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
     border-radius: 50%;
     background: transparent;
     border: 1px solid var(--border-med);
@@ -342,7 +250,6 @@
   .week-nav-btn:hover { color: var(--text); background: var(--surface); }
   .week-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* ===== Grid table ===== */
   .grid-wrapper {
     background: var(--surface);
     border-radius: var(--radius-lg);
@@ -351,130 +258,72 @@
     box-shadow: var(--shadow-sm);
     margin-bottom: 2rem;
   }
-
-  .grid-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-  }
-
+  .grid-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .grid-table th {
     background: var(--surface-alt);
-    font-weight: 500;
-    font-size: 11px;
+    font-weight: 500; font-size: 11px;
     color: var(--text-muted);
     padding: 14px 4px;
     border-bottom: 1px solid var(--border);
     text-align: center;
   }
-  .grid-table th.today, .grid-table td.today {
-    background: var(--today-accent);
-  }
+  .grid-table th.today, .grid-table td.today { background: var(--today-accent); }
   .grid-table th.habit-col {
-    text-align: left;
-    padding-left: 20px;
-    font-size: 12px;
-    width: 240px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    text-align: left; padding-left: 20px;
+    font-size: 12px; width: 240px;
+    text-transform: uppercase; letter-spacing: 0.08em;
   }
-
   .grid-table td {
-    padding: 0;
-    text-align: center;
-    vertical-align: middle;
+    padding: 0; text-align: center; vertical-align: middle;
     border-bottom: 1px solid var(--border);
   }
   .grid-table tr:last-child td { border-bottom: none; }
-
   .grid-table td.habit-cell {
-    text-align: left;
-    padding: 12px 16px;
+    text-align: left; padding: 12px 16px;
     background: var(--surface-alt);
     border-right: 1px solid var(--border);
   }
   .grid-table td.day-cell {
-    height: 48px;
-    cursor: pointer;
+    height: 48px; cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
   }
-  .grid-table td.day-cell:hover {
-    background: var(--surface-alt);
-  }
-  .grid-table td.day-cell.today:hover {
-    background: var(--surface-hover);
-  }
-  .grid-table td.day-cell.done {
-    background: var(--done-bg);
-  }
-  .grid-table td.day-cell.done:hover {
-    background: var(--done-bg-hover);
-  }
+  .grid-table td.day-cell:hover { background: var(--surface-alt); }
+  .grid-table td.day-cell.today:hover { background: var(--surface-hover); }
+  .grid-table td.day-cell.done { background: var(--done-bg); }
+  .grid-table td.day-cell.done:hover { background: var(--done-bg-hover); }
   .grid-table td.day-cell.readonly { cursor: default; }
   .grid-table td.day-cell.readonly:hover { background: transparent; }
   .grid-table td.day-cell.readonly.today:hover { background: var(--today-accent); }
   .grid-table td.day-cell.readonly.done:hover { background: var(--done-bg); }
 
   .check-svg {
-    width: 18px;
-    height: 18px;
-    pointer-events: none;
+    width: 18px; height: 18px; pointer-events: none;
     stroke: var(--done-check);
-    stroke-width: 2.5;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    stroke-width: 2.5; fill: none;
+    stroke-linecap: round; stroke-linejoin: round;
   }
 
-  .day-header-num {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text);
-    display: block;
-    letter-spacing: -0.02em;
-  }
-  .day-header-name {
-    font-size: 10px;
-    color: var(--text-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    display: block;
-    margin-bottom: 3px;
-    font-weight: 500;
-  }
+  .day-header-num { font-size: 16px; font-weight: 500; color: var(--text); display: block; letter-spacing: -0.02em; }
+  .day-header-name { font-size: 10px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 3px; font-weight: 500; }
 
   .habit-cell-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
-    min-width: 0;
+    display: flex; align-items: center;
+    gap: 8px; flex-wrap: nowrap; min-width: 0;
   }
   .habit-name-text {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 14px; font-weight: 500;
     letter-spacing: -0.005em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-    min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: 1; min-width: 0;
   }
   .habit-edit-btn {
-    font-size: 11px;
-    padding: 3px 8px;
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text-soft);
-    font-weight: 400;
-    flex-shrink: 0;
-    opacity: 0;
-    transition: opacity 0.15s;
+    font-size: 11px; padding: 3px 8px;
+    background: transparent; border: 1px solid transparent;
+    color: var(--text-soft); font-weight: 400;
+    flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
   }
-  .grid-table tr:hover .habit-edit-btn {
-    opacity: 1;
-  }
+  .grid-table tr:hover .habit-edit-btn { opacity: 1; }
   .habit-edit-btn:hover {
     color: var(--text-muted);
     background: var(--surface);
@@ -482,25 +331,13 @@
   }
 
   .badge-inline {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 100px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
+    font-size: 10px; padding: 2px 8px;
+    border-radius: 100px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 3px;
   }
-  .badge-inline.streak {
-    background: var(--streak-bg);
-    color: var(--streak-text);
-  }
+  .badge-inline.streak { background: var(--streak-bg); color: var(--streak-text); }
 
-  /* ===== Weekly habits ===== */
-  .weekly-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+  .weekly-list { display: flex; flex-direction: column; gap: 8px; }
   .weekly-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -509,67 +346,38 @@
     box-shadow: var(--shadow-sm);
     transition: box-shadow 0.2s;
   }
-  .weekly-card:hover {
-    box-shadow: var(--shadow-md);
-  }
-
-  .weekly-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: nowrap;
-  }
+  .weekly-card:hover { box-shadow: var(--shadow-md); }
+  .weekly-row { display: flex; align-items: center; gap: 14px; flex-wrap: nowrap; }
   .weekly-name-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    min-width: 0;
-    max-width: 40%;
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0; min-width: 0; max-width: 40%;
   }
   .weekly-name {
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: -0.005em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px; font-weight: 500; letter-spacing: -0.005em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .weekly-progress-wrap {
-    flex: 1;
-    min-width: 60px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    flex: 1; min-width: 60px;
+    display: flex; align-items: center; gap: 10px;
   }
   .progress-count {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-weight: 500;
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-width: 38px;
-    text-align: right;
+    font-size: 12px; color: var(--text-muted);
+    font-weight: 500; white-space: nowrap;
+    flex-shrink: 0; min-width: 38px; text-align: right;
   }
-
   .badge {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 100px;
-    font-weight: 500;
-    white-space: nowrap;
-    flex-shrink: 0;
+    font-size: 10px; padding: 2px 8px;
+    border-radius: 100px; font-weight: 500;
+    white-space: nowrap; flex-shrink: 0;
   }
   .badge.streak { background: var(--streak-bg); color: var(--streak-text); }
   .badge.info { background: var(--info-bg); color: var(--info-text); }
-
   .progress-bar {
     height: 6px;
     background: var(--ring-track);
     border-radius: 100px;
     overflow: hidden;
-    flex: 1;
-    min-width: 40px;
+    flex: 1; min-width: 40px;
   }
   .progress-fill {
     height: 100%;
@@ -577,109 +385,60 @@
     transition: width 0.4s ease;
     border-radius: 100px;
   }
-
-  .weekly-actions {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-    flex-shrink: 0;
-  }
-  .weekly-actions button.small {
-    font-size: 12px;
-    padding: 5px 10px;
-    min-width: 28px;
-  }
-  button.done-btn {
-    background: var(--done-bg);
-    color: var(--done-check);
-    border-color: var(--done-bg);
-  }
+  .weekly-actions { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+  .weekly-actions button.small { font-size: 12px; padding: 5px 10px; min-width: 28px; }
+  button.done-btn { background: var(--done-bg); color: var(--done-check); border-color: var(--done-bg); }
   button.done-btn:hover { background: var(--done-bg-hover); border-color: var(--done-bg-hover); }
-  .weekly-card .habit-edit-btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-  .weekly-card:hover .habit-edit-btn {
-    opacity: 1;
-  }
+  .weekly-card .habit-edit-btn { font-size: 11px; padding: 4px 8px; opacity: 0; transition: opacity 0.15s; }
+  .weekly-card:hover .habit-edit-btn { opacity: 1; }
 
-  /* ===== Section header ===== */
   .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     margin: 2rem 0 12px;
   }
   .section-header h2 {
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 11px; font-weight: 500;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    text-transform: uppercase; letter-spacing: 0.1em;
   }
 
   .empty-state {
-    padding: 2rem 1.5rem;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 13px;
+    padding: 2rem 1.5rem; text-align: center;
+    color: var(--text-muted); font-size: 13px;
     background: var(--surface);
     border: 1px dashed var(--border-med);
     border-radius: var(--radius-lg);
   }
 
-  /* ===== Setup / Partner ===== */
   .setup-card {
-    max-width: 440px;
-    margin: 4rem auto;
-    padding: 2.5rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
+    max-width: 440px; margin: 4rem auto; padding: 2.5rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-xl); box-shadow: var(--shadow-md);
   }
-  .setup-card h2 {
-    font-size: 22px;
-    font-weight: 500;
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
-  }
+  .setup-card h2 { font-size: 22px; font-weight: 500; margin-bottom: 8px; letter-spacing: -0.02em; }
 
   .info-banner {
-    background: var(--info-bg);
-    color: var(--info-text);
-    padding: 14px 18px;
-    border-radius: var(--radius);
+    background: var(--info-bg); color: var(--info-text);
+    padding: 14px 18px; border-radius: var(--radius);
     font-size: 13px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 1.5rem;
   }
   .info-banner button {
-    background: var(--info-text);
-    color: var(--info-bg);
+    background: var(--info-text); color: var(--info-bg);
     border-color: var(--info-text);
-    font-size: 12px;
-    padding: 6px 12px;
+    font-size: 12px; padding: 6px 12px;
   }
 
   .help-banner {
     background: var(--surface-alt);
     padding: 16px 20px;
     border-radius: var(--radius-lg);
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 1.5rem;
-    line-height: 1.65;
+    font-size: 13px; color: var(--text-muted);
+    margin-bottom: 1.5rem; line-height: 1.65;
   }
   .help-banner strong { font-weight: 500; color: var(--text); }
 
-  /* ===== Comments ===== */
   .comment-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -687,78 +446,66 @@
     padding: 18px 20px;
     box-shadow: var(--shadow-sm);
   }
-  .comment-row {
-    padding: 12px 0;
-    border-top: 1px solid var(--border);
-    font-size: 14px;
-  }
+  .comment-row { padding: 12px 0; border-top: 1px solid var(--border); font-size: 14px; }
   .comment-row:first-of-type { border-top: none; padding-top: 4px; }
-  .comment-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    gap: 8px;
-  }
-  .comment-from {
-    font-weight: 500;
-    font-size: 13px;
-    color: var(--text-muted);
-  }
+  .comment-header { display: flex; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
+  .comment-from { font-weight: 500; font-size: 13px; color: var(--text-muted); }
   .comment-from.received { color: var(--info-text); }
-  .comment-time {
-    font-size: 11px;
-    color: var(--text-soft);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    flex-shrink: 0;
-  }
+  .comment-time { font-size: 11px; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
 
-  /* ===== Modal ===== */
   .modal-overlay {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: rgba(20,20,20,0.3);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 1rem;
   }
   .modal {
     background: var(--surface);
     border-radius: var(--radius-xl);
     padding: 2rem;
-    max-width: 400px;
-    width: 100%;
+    max-width: 400px; width: 100%;
     border: 1px solid var(--border);
     box-shadow: 0 10px 40px rgba(0,0,0,0.1);
   }
-  .modal h3 {
-    font-size: 18px;
-    font-weight: 500;
-    margin: 0 0 1.5rem;
-    letter-spacing: -0.01em;
-  }
+  .modal h3 { font-size: 18px; font-weight: 500; margin: 0 0 1.5rem; letter-spacing: -0.01em; }
   .modal-row { margin-bottom: 14px; }
   .modal-row label {
-    display: block;
-    font-size: 12px;
+    display: block; font-size: 12px;
     color: var(--text-muted);
-    margin-bottom: 6px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    margin-bottom: 6px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.05em;
   }
-  .modal-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    margin-top: 1.5rem;
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem; }
+
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+  }
+  .loading-spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--ring-track);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
-  /* ===== Responsive ===== */
+  .error-banner {
+    background: #fee; color: #900;
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    margin-bottom: 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+  }
+
   @media (max-width: 900px) {
     .rings-section { grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .ring-card { padding: 14px; gap: 10px; }
@@ -780,68 +527,58 @@
     .weekly-name-wrap { max-width: 45%; }
     .weekly-card .habit-edit-btn { opacity: 1; }
   }
-
-  @media (max-width: 500px) {
-    .ring-card { flex-direction: column; text-align: center; gap: 12px; }
-    .ring-info { text-align: center; }
-  }
 </style>
 </head>
 <body>
-<div id="app">
-  <div style="text-align: center; padding: 2rem; color: var(--text-muted);">Loading...</div>
+<div id="loading-overlay" class="loading-overlay">
+  <div class="loading-spinner"></div>
 </div>
 
+<div id="app"></div>
 <div id="modal-container"></div>
 
 <script>
 (function() {
+  // ===== SUPABASE CONFIG =====
+  const SUPABASE_URL = 'https://bghjdbiypgivlzyfyvxn.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaGpkYml5cGdpdmx6eWZ5dnhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Mzc1NDcsImV4cCI6MjA5MjAxMzU0N30.2tkuoDlxPf4LZDzkraoOQcckceUCil6HEGdq6xaKRoA';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const app = document.getElementById('app');
   const modalContainer = document.getElementById('modal-container');
+  const loadingOverlay = document.getElementById('loading-overlay');
 
   let state = {
     currentUser: null,
     users: {},
     view: 'me',
     weekOffset: 0,
-    theme: 'light'
+    theme: 'light',
+    syncStatus: 'idle',
+    lastError: null
   };
 
-  const STORAGE_KEY = 'habittracker_v3';
+  // ===== LOCAL PREFS (username + theme) =====
+  const LOCAL_PREFS_KEY = 'habittracker_prefs_v1';
 
-  function loadState() {
+  function loadLocalPrefs() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(LOCAL_PREFS_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw);
-        state.users = parsed.users || {};
-        state.currentUser = parsed.currentUser || null;
-        state.theme = parsed.theme || 'light';
+        const p = JSON.parse(raw);
+        state.currentUser = p.currentUser || null;
+        state.theme = p.theme || 'light';
       }
-      // Migration from v2
-      if (!state.currentUser || Object.keys(state.users).length === 0) {
-        const oldRaw = localStorage.getItem('habittracker_v2');
-        if (oldRaw) {
-          const oldParsed = JSON.parse(oldRaw);
-          if (oldParsed.users && Object.keys(oldParsed.users).length > 0) {
-            state.users = oldParsed.users;
-            state.currentUser = oldParsed.currentUser || null;
-            saveState();
-          }
-        }
-      }
-      applyTheme();
-    } catch (e) { console.error('Load failed:', e); }
+    } catch (e) {}
   }
 
-  function saveState() {
+  function saveLocalPrefs() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        users: state.users,
+      localStorage.setItem(LOCAL_PREFS_KEY, JSON.stringify({
         currentUser: state.currentUser,
         theme: state.theme
       }));
-    } catch (e) { console.error('Save failed:', e); }
+    } catch (e) {}
   }
 
   function applyTheme() {
@@ -855,24 +592,198 @@
   function toggleTheme() {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
     applyTheme();
-    saveState();
+    saveLocalPrefs();
     render();
   }
 
+  // ===== SUPABASE DATA LAYER =====
+  function setSync(status, error) {
+    state.syncStatus = status;
+    state.lastError = error || null;
+    updateSyncIndicator();
+  }
+
+  function updateSyncIndicator() {
+    const el = document.getElementById('sync-indicator');
+    if (!el) return;
+    el.className = 'sync-indicator ' + (state.syncStatus === 'syncing' ? 'syncing' : state.syncStatus === 'error' ? 'error' : '');
+    el.innerHTML = state.syncStatus === 'syncing'
+      ? '<span class="sync-dot"></span>Syncing...'
+      : state.syncStatus === 'error'
+      ? '<span class="sync-dot"></span>Offline'
+      : '<span class="sync-dot"></span>Synced';
+  }
+
+  async function loadAllData() {
+    setSync('syncing');
+    try {
+      // Load all users, habits, checkins, weekly progress, comments
+      const [usersR, habitsR, checkinsR, weeklyR, commentsR] = await Promise.all([
+        sb.from('users').select('*'),
+        sb.from('habits').select('*'),
+        sb.from('checkins').select('*'),
+        sb.from('weekly_progress').select('*'),
+        sb.from('comments').select('*')
+      ]);
+
+      if (usersR.error) throw usersR.error;
+      if (habitsR.error) throw habitsR.error;
+      if (checkinsR.error) throw checkinsR.error;
+      if (weeklyR.error) throw weeklyR.error;
+      if (commentsR.error) throw commentsR.error;
+
+      // Rebuild state.users from flat tables
+      state.users = {};
+      (usersR.data || []).forEach(u => {
+        state.users[u.username] = {
+          habits: [],
+          checkins: {},
+          weekly: {},
+          comments: [],
+          partner: u.partner
+        };
+      });
+
+      (habitsR.data || []).forEach(h => {
+        const u = state.users[h.username];
+        if (u) u.habits.push({
+          id: h.id,
+          name: h.name,
+          type: h.type,
+          target: h.target,
+          created: new Date(h.created_at).getTime()
+        });
+      });
+
+      (checkinsR.data || []).forEach(c => {
+        // find habit owner
+        const habit = (habitsR.data || []).find(h => h.id === c.habit_id);
+        if (!habit) return;
+        const u = state.users[habit.username];
+        if (!u) return;
+        if (!u.checkins[c.habit_id]) u.checkins[c.habit_id] = {};
+        u.checkins[c.habit_id][c.date] = true;
+      });
+
+      (weeklyR.data || []).forEach(w => {
+        const habit = (habitsR.data || []).find(h => h.id === w.habit_id);
+        if (!habit) return;
+        const u = state.users[habit.username];
+        if (!u) return;
+        if (!u.weekly[w.habit_id]) u.weekly[w.habit_id] = {};
+        u.weekly[w.habit_id][w.week] = w.count;
+      });
+
+      (commentsR.data || []).forEach(c => {
+        const u = state.users[c.from_user];
+        if (!u) return;
+        u.comments.push({
+          id: c.id,
+          from: c.from_user,
+          to: c.to_user,
+          habitId: c.habit_id,
+          habitName: c.habit_name,
+          text: c.text,
+          date: new Date(c.created_at).getTime()
+        });
+      });
+
+      setSync('idle');
+    } catch (err) {
+      console.error('Load failed:', err);
+      setSync('error', err.message);
+    }
+  }
+
+  async function dbUpsertUser(username) {
+    const { error } = await sb.from('users').upsert({ username }, { onConflict: 'username' });
+    if (error) throw error;
+  }
+
+  async function dbUpdateUserPartner(username, partner) {
+    const { error } = await sb.from('users').update({ partner }).eq('username', username);
+    if (error) throw error;
+  }
+
+  async function dbInsertHabit(habit, username) {
+    const { error } = await sb.from('habits').insert({
+      id: habit.id,
+      username,
+      name: habit.name,
+      type: habit.type,
+      target: habit.target
+    });
+    if (error) throw error;
+  }
+
+  async function dbUpdateHabit(habit) {
+    const { error } = await sb.from('habits').update({
+      name: habit.name,
+      target: habit.target
+    }).eq('id', habit.id);
+    if (error) throw error;
+  }
+
+  async function dbDeleteHabit(habitId) {
+    const { error } = await sb.from('habits').delete().eq('id', habitId);
+    if (error) throw error;
+  }
+
+  async function dbInsertCheckin(habitId, date) {
+    const { error } = await sb.from('checkins').upsert({ habit_id: habitId, date }, { onConflict: 'habit_id,date' });
+    if (error) throw error;
+  }
+
+  async function dbDeleteCheckin(habitId, date) {
+    const { error } = await sb.from('checkins').delete().eq('habit_id', habitId).eq('date', date);
+    if (error) throw error;
+  }
+
+  async function dbUpsertWeekly(habitId, week, count) {
+    const { error } = await sb.from('weekly_progress').upsert({
+      habit_id: habitId, week, count, updated_at: new Date().toISOString()
+    }, { onConflict: 'habit_id,week' });
+    if (error) throw error;
+  }
+
+  async function dbInsertComment(comment) {
+    const { error } = await sb.from('comments').insert({
+      id: comment.id,
+      from_user: comment.from,
+      to_user: comment.to,
+      habit_id: comment.habitId || null,
+      habit_name: comment.habitName || null,
+      text: comment.text
+    });
+    if (error) throw error;
+  }
+
+  // Wrapper that shows sync status and handles errors gracefully
+  async function withSync(fn) {
+    setSync('syncing');
+    try {
+      await fn();
+      setSync('idle');
+    } catch (err) {
+      console.error('Sync error:', err);
+      setSync('error', err.message);
+      alert('Error saving: ' + err.message + '\n\nPlease try again.');
+    }
+  }
+
+  // ===== DATE HELPERS =====
   function todayStr() { return dateStr(new Date()); }
   function dateStr(d) {
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
-
   function mondayOf(d) {
-    const result = new Date(d);
-    const day = result.getDay();
+    const r = new Date(d);
+    const day = r.getDay();
     const diff = day === 0 ? -6 : 1 - day;
-    result.setDate(result.getDate() + diff);
-    result.setHours(0,0,0,0);
-    return result;
+    r.setDate(r.getDate() + diff);
+    r.setHours(0,0,0,0);
+    return r;
   }
-
   function getWeekDays() {
     const today = new Date();
     const monday = mondayOf(today);
@@ -885,7 +796,6 @@
     }
     return days;
   }
-
   function weekKey(d) {
     const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     const dayNum = date.getUTCDay() || 7;
@@ -894,12 +804,7 @@
     const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
     return date.getUTCFullYear() + '-W' + String(weekNo).padStart(2,'0');
   }
-
-  function currentWeekKey() {
-    const days = getWeekDays();
-    return weekKey(days[0]);
-  }
-
+  function currentWeekKey() { return weekKey(getWeekDays()[0]); }
   function daysAgo(n) { const d = new Date(); d.setDate(d.getDate()-n); return d; }
 
   function ensureUser(name) {
@@ -909,16 +814,13 @@
     return state.users[name];
   }
 
+  // ===== STATS =====
   function dailyStreak(user, habitId) {
     let streak = 0;
     for (let i = 0; i < 365; i++) {
       const d = dateStr(daysAgo(i));
-      if (user.checkins[habitId] && user.checkins[habitId][d]) {
-        streak++;
-      } else {
-        if (i === 0) continue;
-        break;
-      }
+      if (user.checkins[habitId] && user.checkins[habitId][d]) streak++;
+      else { if (i === 0) continue; break; }
     }
     return streak;
   }
@@ -934,66 +836,20 @@
     let streak = 0;
     const now = new Date();
     for (let i = 0; i < 52; i++) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i*7);
+      const d = new Date(now); d.setDate(d.getDate() - i*7);
       const wk = weekKey(d);
       const done = (user.weekly[habit.id] && user.weekly[habit.id][wk]) || 0;
       const target = habit.target || 1;
-      if (done >= target) {
-        streak++;
-      } else {
-        if (i === 0) continue;
-        break;
-      }
+      if (done >= target) streak++;
+      else { if (i === 0) continue; break; }
     }
     return streak;
-  }
-
-  // Overall daily completion for the current week (all daily habits across all 7 days)
-  function weekDailyCompletion(user) {
-    const dailyHabits = user.habits.filter(h => h.type === 'daily');
-    if (dailyHabits.length === 0) return { done: 0, total: 0, pct: 0 };
-    const days = getWeekDays();
-    const todayS = todayStr();
-    // Only count days up through today for current week
-    const isCurrentWeek = state.weekOffset === 0;
-    let relevantDays = days;
-    if (isCurrentWeek) {
-      relevantDays = days.filter(d => dateStr(d) <= todayS);
-    }
-    const total = dailyHabits.length * relevantDays.length;
-    let done = 0;
-    dailyHabits.forEach(h => {
-      relevantDays.forEach(d => {
-        if (user.checkins[h.id] && user.checkins[h.id][dateStr(d)]) done++;
-      });
-    });
-    return { done, total, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
-  }
-
-  function weekWeeklyCompletion(user) {
-    const weeklyHabits = user.habits.filter(h => h.type === 'weekly');
-    if (weeklyHabits.length === 0) return { done: 0, total: 0, pct: 0 };
-    let totalTarget = 0;
-    let totalDone = 0;
-    weeklyHabits.forEach(h => {
-      const p = weeklyProgress(user, h);
-      totalTarget += p.target;
-      totalDone += Math.min(p.done, p.target);
-    });
-    return {
-      done: totalDone,
-      total: totalTarget,
-      pct: totalTarget > 0 ? Math.round((totalDone / totalTarget) * 100) : 0
-    };
   }
 
   function weekTotalCompletion(user) {
     const dailyHabits = user.habits.filter(h => h.type === 'daily');
     const weeklyHabits = user.habits.filter(h => h.type === 'weekly');
     const days = getWeekDays();
-
-    // Daily: each habit × 7 days this week
     let totalSlots = dailyHabits.length * 7;
     let doneSlots = 0;
     dailyHabits.forEach(h => {
@@ -1001,30 +857,31 @@
         if (user.checkins[h.id] && user.checkins[h.id][dateStr(d)]) doneSlots++;
       });
     });
-
-    // Weekly: each habit's target count
     weeklyHabits.forEach(h => {
       const prog = weeklyProgress(user, h);
       totalSlots += prog.target;
-      doneSlots += Math.min(prog.done, prog.target); // cap at target
+      doneSlots += Math.min(prog.done, prog.target);
     });
-
-    return {
-      done: doneSlots,
-      total: totalSlots,
-      pct: totalSlots > 0 ? Math.round((doneSlots / totalSlots) * 100) : 0
-    };
+    return { done: doneSlots, total: totalSlots, pct: totalSlots > 0 ? Math.round((doneSlots / totalSlots) * 100) : 0 };
   }
 
   function todayCompletion(user) {
     const dailyHabits = user.habits.filter(h => h.type === 'daily');
     const todayS = todayStr();
     const done = dailyHabits.filter(h => user.checkins[h.id] && user.checkins[h.id][todayS]).length;
-    return {
-      done,
-      total: dailyHabits.length,
-      pct: dailyHabits.length > 0 ? Math.round((done / dailyHabits.length) * 100) : 0
-    };
+    return { done, total: dailyHabits.length, pct: dailyHabits.length > 0 ? Math.round((done / dailyHabits.length) * 100) : 0 };
+  }
+
+  function weekWeeklyCompletion(user) {
+    const weeklyHabits = user.habits.filter(h => h.type === 'weekly');
+    if (weeklyHabits.length === 0) return { done: 0, total: 0, pct: 0 };
+    let totalTarget = 0, totalDone = 0;
+    weeklyHabits.forEach(h => {
+      const p = weeklyProgress(user, h);
+      totalTarget += p.target;
+      totalDone += Math.min(p.done, p.target);
+    });
+    return { done: totalDone, total: totalTarget, pct: totalTarget > 0 ? Math.round((totalDone / totalTarget) * 100) : 0 };
   }
 
   function escapeHtml(s) {
@@ -1044,17 +901,13 @@
   }
 
   function formatWeekLabel(days) {
-    const first = days[0];
-    const last = days[6];
+    const first = days[0], last = days[6];
     const sameMonth = first.getMonth() === last.getMonth();
-    if (sameMonth) {
-      return first.toLocaleDateString(undefined, { month: 'long' }) + ' ' + first.getDate() + ' – ' + last.getDate();
-    }
-    const monthFmt = { month: 'short', day: 'numeric' };
-    return first.toLocaleDateString(undefined, monthFmt) + ' – ' + last.toLocaleDateString(undefined, monthFmt);
+    if (sameMonth) return first.toLocaleDateString(undefined, { month: 'long' }) + ' ' + first.getDate() + ' – ' + last.getDate();
+    const fmt = { month: 'short', day: 'numeric' };
+    return first.toLocaleDateString(undefined, fmt) + ' – ' + last.toLocaleDateString(undefined, fmt);
   }
 
-  // SVG progress ring
   function renderRing(pct, color, size = 88, stroke = 8) {
     const radius = (size - stroke) / 2;
     const circumference = 2 * Math.PI * radius;
@@ -1082,40 +935,27 @@
     `;
     const firstInput = modalContainer.querySelector('input, select, textarea');
     if (firstInput) setTimeout(() => firstInput.focus(), 50);
-
     const overlay = document.getElementById('modal-overlay');
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeModal();
-    });
-
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
     modalContainer.querySelector('[data-modal-cancel]').addEventListener('click', closeModal);
-    modalContainer.querySelector('[data-modal-submit]').addEventListener('click', () => {
-      if (onSubmit) onSubmit(modalContainer);
-    });
+    modalContainer.querySelector('[data-modal-submit]').addEventListener('click', () => { if (onSubmit) onSubmit(modalContainer); });
     modalContainer.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
-        e.preventDefault();
-        if (onSubmit) onSubmit(modalContainer);
-      }
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); if (onSubmit) onSubmit(modalContainer); }
       if (e.key === 'Escape') closeModal();
     });
   }
-
   function closeModal() { modalContainer.innerHTML = ''; }
 
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
     if (!el) return;
-    const action = el.dataset.action;
-    const arg = el.dataset.arg;
-    const arg2 = el.dataset.arg2;
-    const arg3 = el.dataset.arg3;
-
+    const a = el.dataset.action;
+    const arg = el.dataset.arg, arg2 = el.dataset.arg2, arg3 = el.dataset.arg3;
     const actions = {
       'create-user': createUser,
       'sign-in': () => signIn(arg),
       'switch-user': switchUser,
-      'set-view': () => setView(arg),
+      'set-view': () => { state.view = arg; render(); },
       'add-habit': () => addHabit(arg),
       'edit-habit': () => editHabit(arg),
       'toggle-day': () => toggleDay(arg, arg2),
@@ -1127,18 +967,13 @@
       'unlink-partner': unlinkPartner,
       'cheer-habit': () => cheerHabit(arg, arg2, arg3),
       'send-note': sendNote,
-      'export-data': exportData,
-      'import-data': importData,
       'toggle-theme': toggleTheme,
       'week-prev': () => { state.weekOffset--; render(); },
       'week-next': () => { state.weekOffset++; render(); },
-      'week-current': () => { state.weekOffset = 0; render(); }
+      'week-current': () => { state.weekOffset = 0; render(); },
+      'refresh': refresh
     };
-
-    if (actions[action]) {
-      e.preventDefault();
-      actions[action]();
-    }
+    if (actions[a]) { e.preventDefault(); actions[a](); }
   });
 
   document.addEventListener('keydown', (e) => {
@@ -1147,6 +982,11 @@
     if (e.target.id === 'partner-name') { e.preventDefault(); linkPartner(); }
     if (e.target.id === 'cheer-text') { e.preventDefault(); sendNote(); }
   });
+
+  async function refresh() {
+    await loadAllData();
+    render();
+  }
 
   function render() {
     if (!state.currentUser) {
@@ -1165,14 +1005,14 @@
           </p>
         </div>
         <div class="header-actions">
-          <button class="theme-toggle" data-action="toggle-theme" title="Toggle day/night mode" aria-label="Toggle theme">
+          <span id="sync-indicator" class="sync-indicator"><span class="sync-dot"></span>Synced</span>
+          <button class="theme-toggle" data-action="toggle-theme" title="Toggle day/night" aria-label="Toggle theme">
             ${state.theme === 'dark'
               ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>'
               : '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
             }
           </button>
-          <button class="ghost" data-action="export-data">Export</button>
-          <button class="ghost" data-action="import-data">Import</button>
+          <button class="ghost" data-action="refresh">Refresh</button>
           <button class="ghost" data-action="switch-user">Switch user</button>
         </div>
       </div>
@@ -1185,8 +1025,9 @@
       <div id="view-body"></div>
     `;
 
-    if (state.view === 'me') renderMe();
-    else renderPartner();
+    updateSyncIndicator();
+    if (state.view === 'me') renderUserView(state.users[state.currentUser], true);
+    else renderPartnerView();
   }
 
   function renderSetup() {
@@ -1195,7 +1036,7 @@
       <div class="setup-card">
         <h2>Welcome</h2>
         <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 1.5rem;">
-          Pick a username to get started. You'll be remembered on this device.
+          Pick a username to get started. Your data syncs with your partner automatically.
         </p>
 
         ${existingUsers.length ? `
@@ -1220,12 +1061,7 @@
     }, 50);
   }
 
-  function renderMe() {
-    const user = state.users[state.currentUser];
-    renderUserView(user, true);
-  }
-
-  function renderPartner() {
+  function renderPartnerView() {
     const me = state.users[state.currentUser];
     const partnerName = me.partner;
     const body = document.getElementById('view-body');
@@ -1236,14 +1072,14 @@
         <div style="text-align: center; padding: 3rem 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm);">
           <h2 style="font-size: 18px; margin-bottom: 10px;">No partner linked yet</h2>
           <p style="font-size: 14px; color: var(--text-muted); margin: 0 auto 1.5rem; max-width: 360px;">
-            Your partner can sign up here on this device, or you can share data by exporting a file.
+            Enter your partner's username. They need to have signed up too.
           </p>
           <div style="max-width: 280px; margin: 0 auto;">
             <input type="text" id="partner-name" placeholder="partner's username" autocomplete="off" style="margin-bottom: 8px;" />
             <button class="primary" data-action="link-partner" style="width: 100%;">Link partner</button>
           </div>
           ${others.length ? `
-            <p style="font-size: 11px; color: var(--text-soft); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Available on this device</p>
+            <p style="font-size: 11px; color: var(--text-soft); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Available users</p>
             <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
               ${others.map(u => `<button data-action="quick-link" data-arg="${escapeHtml(u)}" style="font-size: 12px;">${escapeHtml(u)}</button>`).join('')}
             </div>
@@ -1255,7 +1091,7 @@
 
     const partner = state.users[partnerName];
     if (!partner) {
-      body.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted);">Partner data not found. <button data-action="unlink-partner">Unlink</button></div>`;
+      body.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted);">Partner "${escapeHtml(partnerName)}" not found. They may not have signed up yet. <button data-action="unlink-partner">Unlink</button></div>`;
       return;
     }
 
@@ -1484,7 +1320,8 @@
     `;
   }
 
-  function createUser() {
+  // ===== ACTIONS (all write to Supabase) =====
+  async function createUser() {
     const input = document.getElementById('new-username');
     const errorEl = document.getElementById('setup-error');
     if (!input) return;
@@ -1493,28 +1330,29 @@
       if (errorEl) errorEl.textContent = 'Pick a username (at least 2 characters)';
       return;
     }
-    state.currentUser = name;
-    ensureUser(name);
-    saveState();
+    await withSync(async () => {
+      await dbUpsertUser(name);
+      ensureUser(name);
+      state.currentUser = name;
+      saveLocalPrefs();
+    });
     render();
   }
 
-  function signIn(name) {
+  async function signIn(name) {
     state.currentUser = name;
     ensureUser(name);
-    saveState();
+    saveLocalPrefs();
     render();
   }
 
   function switchUser() {
     state.currentUser = null;
-    saveState();
+    saveLocalPrefs();
     render();
   }
 
-  function setView(v) { state.view = v; render(); }
-
-  function addHabit(type) {
+  async function addHabit(type) {
     const body = `
       <div class="modal-row">
         <label>Habit name</label>
@@ -1528,30 +1366,29 @@
         </div>
       ` : ''}
     `;
-    showModal(`New ${type} habit`, body, () => {
+    showModal(`New ${type} habit`, body, async () => {
       const name = document.getElementById('modal-habit-name').value.trim();
       if (!name) return;
       let target = 1;
-      if (type === 'weekly') {
-        target = parseInt(document.getElementById('modal-habit-target').value) || 1;
-      }
-      const user = state.users[state.currentUser];
-      user.habits.push({
+      if (type === 'weekly') target = parseInt(document.getElementById('modal-habit-target').value) || 1;
+      const habit = {
         id: 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
         name, type, target,
         created: Date.now()
+      };
+      await withSync(async () => {
+        await dbInsertHabit(habit, state.currentUser);
+        state.users[state.currentUser].habits.push(habit);
       });
-      saveState();
       closeModal();
       render();
     });
   }
 
-  function editHabit(id) {
+  async function editHabit(id) {
     const user = state.users[state.currentUser];
     const h = user.habits.find(x => x.id === id);
     if (!h) return;
-
     const body = `
       <div class="modal-row">
         <label>Name</label>
@@ -1567,190 +1404,197 @@
         <button data-modal-delete style="color: var(--danger); border-color: rgba(181,78,78,0.3); font-size: 12px;">Delete this habit</button>
       </div>
     `;
-    showModal(`Edit habit`, body, () => {
+    showModal(`Edit habit`, body, async () => {
       const name = document.getElementById('modal-edit-name').value.trim();
       if (name) h.name = name;
       if (h.type === 'weekly') {
         const t = parseInt(document.getElementById('modal-edit-target').value);
         if (t) h.target = Math.max(1, t);
       }
-      saveState();
+      await withSync(async () => { await dbUpdateHabit(h); });
       closeModal();
       render();
     });
-
     const delBtn = modalContainer.querySelector('[data-modal-delete]');
     if (delBtn) {
-      delBtn.addEventListener('click', () => {
-        if (confirm(`Delete "${h.name}" and all its history?`)) {
+      delBtn.addEventListener('click', async () => {
+        if (!confirm(`Delete "${h.name}" and all its history?`)) return;
+        await withSync(async () => {
+          await dbDeleteHabit(id);
           user.habits = user.habits.filter(x => x.id !== id);
           delete user.checkins[id];
           delete user.weekly[id];
-          saveState();
-          closeModal();
-          render();
-        }
+        });
+        closeModal();
+        render();
       });
     }
   }
 
-  function toggleDay(habitId, dateString) {
+  async function toggleDay(habitId, dateString) {
     const user = state.users[state.currentUser];
     if (!user.checkins[habitId]) user.checkins[habitId] = {};
-    if (user.checkins[habitId][dateString]) {
-      delete user.checkins[habitId][dateString];
-    } else {
-      user.checkins[habitId][dateString] = true;
-    }
-    saveState();
+    const currentlyDone = !!user.checkins[habitId][dateString];
+    await withSync(async () => {
+      if (currentlyDone) {
+        await dbDeleteCheckin(habitId, dateString);
+        delete user.checkins[habitId][dateString];
+      } else {
+        await dbInsertCheckin(habitId, dateString);
+        user.checkins[habitId][dateString] = true;
+      }
+    });
     render();
   }
 
-  function weeklyToggle(id) {
+  async function weeklyToggle(id) {
     const user = state.users[state.currentUser];
     const wk = currentWeekKey();
     if (!user.weekly[id]) user.weekly[id] = {};
-    user.weekly[id][wk] = user.weekly[id][wk] >= 1 ? 0 : 1;
-    saveState();
+    const newVal = user.weekly[id][wk] >= 1 ? 0 : 1;
+    await withSync(async () => {
+      await dbUpsertWeekly(id, wk, newVal);
+      user.weekly[id][wk] = newVal;
+    });
     render();
   }
 
-  function weeklyInc(id) {
+  async function weeklyInc(id) {
     const user = state.users[state.currentUser];
     const wk = currentWeekKey();
     if (!user.weekly[id]) user.weekly[id] = {};
-    user.weekly[id][wk] = (user.weekly[id][wk] || 0) + 1;
-    saveState();
+    const newVal = (user.weekly[id][wk] || 0) + 1;
+    await withSync(async () => {
+      await dbUpsertWeekly(id, wk, newVal);
+      user.weekly[id][wk] = newVal;
+    });
     render();
   }
 
-  function weeklyDec(id) {
+  async function weeklyDec(id) {
     const user = state.users[state.currentUser];
     const wk = currentWeekKey();
     if (!user.weekly[id]) user.weekly[id] = {};
-    user.weekly[id][wk] = Math.max(0, (user.weekly[id][wk] || 0) - 1);
-    saveState();
+    const newVal = Math.max(0, (user.weekly[id][wk] || 0) - 1);
+    await withSync(async () => {
+      await dbUpsertWeekly(id, wk, newVal);
+      user.weekly[id][wk] = newVal;
+    });
     render();
   }
 
-  function linkPartner() {
+  async function linkPartner() {
     const input = document.getElementById('partner-name');
     if (!input) return;
     const name = (input.value || '').trim().toLowerCase().replace(/\s+/g, '-');
     if (!name) return;
     if (name === state.currentUser) { alert("Can't partner with yourself!"); return; }
     if (!state.users[name]) {
-      if (!confirm(`No user "${name}" exists yet. Link anyway? They can sign up later.`)) return;
-      ensureUser(name);
+      alert(`No user "${name}" has signed up yet. Ask them to open the site and create their username first.`);
+      return;
     }
-    state.users[state.currentUser].partner = name;
-    if (state.users[name] && !state.users[name].partner) {
-      state.users[name].partner = state.currentUser;
-    }
-    saveState();
+    await withSync(async () => {
+      await dbUpdateUserPartner(state.currentUser, name);
+      state.users[state.currentUser].partner = name;
+      if (!state.users[name].partner) {
+        await dbUpdateUserPartner(name, state.currentUser);
+        state.users[name].partner = state.currentUser;
+      }
+    });
     render();
   }
 
-  function quickLink(name) {
-    state.users[state.currentUser].partner = name;
-    if (!state.users[name].partner) {
-      state.users[name].partner = state.currentUser;
-    }
-    saveState();
+  async function quickLink(name) {
+    await withSync(async () => {
+      await dbUpdateUserPartner(state.currentUser, name);
+      state.users[state.currentUser].partner = name;
+      if (!state.users[name].partner) {
+        await dbUpdateUserPartner(name, state.currentUser);
+        state.users[name].partner = state.currentUser;
+      }
+    });
     render();
   }
 
-  function unlinkPartner() {
-    state.users[state.currentUser].partner = null;
-    saveState();
+  async function unlinkPartner() {
+    await withSync(async () => {
+      await dbUpdateUserPartner(state.currentUser, null);
+      state.users[state.currentUser].partner = null;
+    });
     render();
   }
 
-  function cheerHabit(ownerName, habitId, habitName) {
+  async function cheerHabit(ownerName, habitId, habitName) {
     const body = `
       <div class="modal-row">
         <label>Your note about "${escapeHtml(habitName)}"</label>
         <input type="text" id="modal-cheer-text" placeholder="Keep it up!" autocomplete="off" />
       </div>
     `;
-    showModal(`Send encouragement`, body, () => {
+    showModal(`Send encouragement`, body, async () => {
       const text = document.getElementById('modal-cheer-text').value.trim();
       if (!text) return;
-      const me = state.users[state.currentUser];
-      me.comments = me.comments || [];
-      me.comments.push({
+      const comment = {
         id: 'c_' + Date.now(),
         from: state.currentUser,
         to: ownerName,
-        habitId, habitName,
-        text,
+        habitId, habitName, text,
         date: Date.now()
+      };
+      await withSync(async () => {
+        await dbInsertComment(comment);
+        const me = state.users[state.currentUser];
+        me.comments = me.comments || [];
+        me.comments.push(comment);
       });
-      saveState();
       closeModal();
       render();
     });
   }
 
-  function sendNote() {
+  async function sendNote() {
     const input = document.getElementById('cheer-text');
     if (!input) return;
     const text = (input.value || '').trim();
     if (!text) return;
     const me = state.users[state.currentUser];
-    const partner = me.partner;
-    if (!partner) return;
-    me.comments = me.comments || [];
-    me.comments.push({
+    if (!me.partner) return;
+    const comment = {
       id: 'c_' + Date.now(),
       from: state.currentUser,
-      to: partner,
+      to: me.partner,
       text,
       date: Date.now()
+    };
+    await withSync(async () => {
+      await dbInsertComment(comment);
+      me.comments = me.comments || [];
+      me.comments.push(comment);
     });
-    saveState();
+    input.value = '';
     render();
   }
 
-  function exportData() {
-    const data = JSON.stringify({ users: state.users, exported: Date.now() }, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `habits-${state.currentUser}-${todayStr()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  // ===== BOOT =====
+  (async function boot() {
+    loadLocalPrefs();
+    applyTheme();
+    try {
+      await loadAllData();
+    } catch (e) {
+      console.error('Boot failed:', e);
+    }
+    loadingOverlay.style.display = 'none';
+    render();
 
-  function importData() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,application/json';
-    input.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const parsed = JSON.parse(ev.target.result);
-          if (!parsed.users) { alert('Invalid file'); return; }
-          if (!confirm('Merge imported data? Existing users with the same name will be overwritten.')) return;
-          Object.assign(state.users, parsed.users);
-          saveState();
-          render();
-          alert('Imported successfully!');
-        } catch (err) {
-          alert('Failed to parse file: ' + err.message);
-        }
-      };
-      reader.readAsText(file);
-    });
-    input.click();
-  }
-
-  loadState();
-  render();
+    // Auto-refresh every 30 seconds to pick up partner's changes
+    setInterval(async () => {
+      if (state.currentUser) {
+        await loadAllData();
+        render();
+      }
+    }, 30000);
+  })();
 })();
 </script>
 </body>
