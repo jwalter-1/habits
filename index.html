@@ -504,11 +504,11 @@
     /* Show mobile card list instead */
     .mobile-daily-list { display: flex; }
 
-    /* Reset weekly list from desktop grid back to a simple vertical list */
+    /* Completely break out of desktop grid layout on mobile */
     .weekly-list {
-      display: flex !important;
-      flex-direction: column;
-      gap: 8px;
+      display: block !important;
+      grid-template-columns: none !important;
+      gap: 0 !important;
     }
     .weekly-card {
       display: block !important;
@@ -517,30 +517,35 @@
       border-radius: var(--radius-lg);
       padding: 14px 16px;
       box-shadow: var(--shadow-sm);
+      margin-bottom: 8px;
+      width: 100%;
     }
-    .weekly-name-cell, .weekly-progress-cell, .weekly-actions-cell {
+    .weekly-name-cell,
+    .weekly-progress-cell,
+    .weekly-actions-cell {
       background: transparent !important;
       border: none !important;
       border-radius: 0 !important;
-      padding: 0 !important;
       box-shadow: none !important;
+      width: 100%;
     }
     .weekly-card > .weekly-name-cell {
-      display: flex;
+      display: flex !important;
       align-items: center;
       gap: 8px;
-      margin-bottom: 10px;
+      padding: 0 0 10px 0 !important;
     }
     .weekly-card > .weekly-progress-cell {
-      display: flex;
+      display: flex !important;
       align-items: center;
       gap: 10px;
-      margin-bottom: 10px;
+      padding: 0 0 10px 0 !important;
     }
     .weekly-card > .weekly-actions-cell {
-      display: flex;
+      display: flex !important;
       justify-content: flex-end;
       gap: 6px;
+      padding: 0 !important;
     }
     .weekly-name { font-size: 15px; }
     .weekly-card .habit-edit-btn { opacity: 1; font-size: 12px; }
