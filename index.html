@@ -501,6 +501,44 @@
     .grid-wrapper { display: none; }
     /* Show mobile card list instead */
     .mobile-daily-list { display: flex; }
+
+    /* Stack weekly cards vertically on mobile */
+    .weekly-card {
+      padding: 14px 16px;
+    }
+    .weekly-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "name actions"
+        "progress progress";
+      gap: 10px;
+      align-items: center;
+    }
+    .weekly-name-wrap {
+      grid-area: name;
+      max-width: 100%;
+    }
+    .weekly-progress-wrap {
+      grid-area: progress;
+      width: 100%;
+    }
+    .weekly-actions {
+      grid-area: actions;
+      justify-self: end;
+    }
+    .weekly-name {
+      font-size: 15px;
+    }
+    .weekly-card .habit-edit-btn {
+      opacity: 1;
+      font-size: 12px;
+    }
+    .weekly-actions button.small {
+      font-size: 13px;
+      padding: 7px 14px;
+      min-width: 36px;
+    }
   }
 
   .weekly-list { display: flex; flex-direction: column; gap: 8px; }
@@ -683,15 +721,7 @@
     h1 { font-size: 24px; }
     .rings-section { grid-template-columns: 1fr; gap: 12px; }
     .ring-card { padding: 18px; gap: 16px; }
-    .grid-table th.habit-col { width: 140px; padding-left: 14px; font-size: 11px; }
-    .grid-table td.habit-cell { padding: 8px 12px; }
-    .grid-table td.day-cell { height: 42px; }
-    .habit-name-text { font-size: 13px; }
-    .day-header-num { font-size: 14px; }
-    .grid-table th { padding: 10px 2px; }
     .habit-edit-btn { opacity: 1; }
-    .weekly-name-wrap { max-width: 45%; }
-    .weekly-card .habit-edit-btn { opacity: 1; }
   }
 </style>
 </head>
