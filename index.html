@@ -759,7 +759,13 @@
   }
 
   // Wrapper that shows sync status and handles errors gracefully
+  let syncInFlight = false;
   async function withSync(fn) {
+    if (syncInFlight) {
+      console.log('Sync already in progress, ignoring duplicate request');
+      return;
+    }
+    syncInFlight = true;
     setSync('syncing');
     try {
       await fn();
@@ -768,6 +774,8 @@
       console.error('Sync error:', err);
       setSync('error', err.message);
       alert('Error saving: ' + err.message + '\n\nPlease try again.');
+    } finally {
+      syncInFlight = false;
     }
   }
 
@@ -938,9 +946,35 @@
     const overlay = document.getElementById('modal-overlay');
     overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
     modalContainer.querySelector('[data-modal-cancel]').addEventListener('click', closeModal);
-    modalContainer.querySelector('[data-modal-submit]').addEventListener('click', () => { if (onSubmit) onSubmit(modalContainer); });
+
+    const submitBtn = modalContainer.querySelector('[data-modal-submit]');
+    let submitting = false;
+    const handleSubmit = async () => {
+      if (submitting) return;
+      submitting = true;
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.5';
+      submitBtn.style.cursor = 'wait';
+      submitBtn.textContent = 'Saving...';
+      try {
+        if (onSubmit) await onSubmit(modalContainer);
+      } finally {
+        submitting = false;
+        // If modal is still open (e.g., validation failed), re-enable button
+        if (document.getElementById('modal-overlay') && submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '';
+          submitBtn.style.cursor = '';
+          submitBtn.textContent = 'Save';
+        }
+      }
+    };
+    submitBtn.addEventListener('click', handleSubmit);
     modalContainer.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); if (onSubmit) onSubmit(modalContainer); }
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT' && !submitting) {
+        e.preventDefault();
+        handleSubmit();
+      }
       if (e.key === 'Escape') closeModal();
     });
   }
@@ -1369,6 +1403,20 @@
     showModal(`New ${type} habit`, body, async () => {
       const name = document.getElementById('modal-habit-name').value.trim();
       if (!name) return;
+
+      // Safety: skip if a habit with the same name was just created (within 5 seconds)
+      const user = state.users[state.currentUser];
+      const recentDuplicate = user.habits.find(h =>
+        h.name.toLowerCase() === name.toLowerCase() &&
+        h.type === type &&
+        (Date.now() - h.created) < 5000
+      );
+      if (recentDuplicate) {
+        console.log('Skipping duplicate habit creation');
+        closeModal();
+        return;
+      }
+
       let target = 1;
       if (type === 'weekly') target = parseInt(document.getElementById('modal-habit-target').value) || 1;
       const habit = {
