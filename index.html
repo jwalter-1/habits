@@ -337,6 +337,49 @@
   }
   .badge-inline.streak { background: var(--streak-bg); color: var(--streak-text); }
 
+  /* Drag and drop */
+  .drag-handle {
+    cursor: grab;
+    color: var(--text-soft);
+    padding: 2px 4px;
+    margin-right: 2px;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    user-select: none;
+    flex-shrink: 0;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .grid-table tr:hover .drag-handle,
+  .weekly-card:hover .drag-handle {
+    opacity: 0.6;
+  }
+  .drag-handle:hover {
+    opacity: 1 !important;
+    color: var(--text-muted);
+  }
+  .drag-handle:active { cursor: grabbing; }
+
+  tr.dragging, .weekly-card.dragging {
+    opacity: 0.4;
+  }
+  tr.drag-over-above > td:first-child {
+    box-shadow: 0 -2px 0 var(--accent) inset;
+  }
+  tr.drag-over-below > td:first-child {
+    box-shadow: 0 2px 0 var(--accent) inset;
+  }
+  .weekly-card.drag-over-above {
+    border-top: 2px solid var(--accent);
+  }
+  .weekly-card.drag-over-below {
+    border-bottom: 2px solid var(--accent);
+  }
+
+  @media (max-width: 720px) {
+    .drag-handle { opacity: 0.5; }
+  }
+
   .weekly-list { display: flex; flex-direction: column; gap: 8px; }
   .weekly-card {
     background: var(--surface);
@@ -651,8 +694,14 @@
           name: h.name,
           type: h.type,
           target: h.target,
+          sort_order: h.sort_order || 0,
           created: new Date(h.created_at).getTime()
         });
+      });
+
+      // Sort habits by sort_order within each user
+      Object.values(state.users).forEach(u => {
+        u.habits.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
       });
 
       (checkinsR.data || []).forEach(c => {
@@ -711,7 +760,8 @@
       username,
       name: habit.name,
       type: habit.type,
-      target: habit.target
+      target: habit.target,
+      sort_order: habit.sort_order || 0
     });
     if (error) throw error;
   }
@@ -727,6 +777,16 @@
   async function dbDeleteHabit(habitId) {
     const { error } = await sb.from('habits').delete().eq('id', habitId);
     if (error) throw error;
+  }
+
+  async function dbUpdateSortOrders(habits) {
+    // Update each habit's sort_order in parallel
+    const updates = habits.map((h, idx) =>
+      sb.from('habits').update({ sort_order: idx * 1000 }).eq('id', h.id)
+    );
+    const results = await Promise.all(updates);
+    const firstError = results.find(r => r.error);
+    if (firstError) throw firstError.error;
   }
 
   async function dbInsertCheckin(habitId, date) {
@@ -1062,6 +1122,11 @@
     updateSyncIndicator();
     if (state.view === 'me') renderUserView(state.users[state.currentUser], true);
     else renderPartnerView();
+
+    // Initialize drag and drop after DOM is built
+    if (state.view === 'me' && state.currentUser) {
+      setTimeout(initDragAndDrop, 0);
+    }
   }
 
   function renderSetup() {
@@ -1245,9 +1310,10 @@
             <tbody>
               ${dailyHabits.map(h => {
                 const streak = dailyStreak(user, h.id);
-                return `<tr>
+                return `<tr data-habit-id="${h.id}" data-habit-type="daily"${isMe ? ' draggable="false"' : ''}>
                   <td class="habit-cell">
                     <div class="habit-cell-content">
+                      ${isMe ? `<span class="drag-handle" data-drag-handle title="Drag to reorder">⋮⋮</span>` : ''}
                       <span class="habit-name-text">${escapeHtml(h.name)}</span>
                       ${streak > 0 ? `<span class="badge-inline streak">🔥 ${streak}</span>` : ''}
                       ${isMe ? `<button class="habit-edit-btn" data-action="edit-habit" data-arg="${h.id}">Edit</button>` : ''}
@@ -1293,8 +1359,9 @@
     const isCountType = habit.target && habit.target > 1;
 
     return `
-      <div class="weekly-card">
+      <div class="weekly-card" data-habit-id="${habit.id}" data-habit-type="weekly">
         <div class="weekly-row">
+          ${isMe ? `<span class="drag-handle" data-drag-handle title="Drag to reorder">⋮⋮</span>` : ''}
           <div class="weekly-name-wrap">
             <span class="weekly-name">${escapeHtml(habit.name)}</span>
             ${streak > 0 ? `<span class="badge streak">🔥 ${streak}</span>` : ''}
@@ -1419,9 +1486,15 @@
 
       let target = 1;
       if (type === 'weekly') target = parseInt(document.getElementById('modal-habit-target').value) || 1;
+
+      // New habits go to the end of their list
+      const sameTypeHabits = user.habits.filter(h => h.type === type);
+      const maxOrder = sameTypeHabits.reduce((max, h) => Math.max(max, h.sort_order || 0), 0);
+
       const habit = {
         id: 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
         name, type, target,
+        sort_order: maxOrder + 1000,
         created: Date.now()
       };
       await withSync(async () => {
@@ -1623,7 +1696,204 @@
     render();
   }
 
-  // ===== BOOT =====
+  // ===== DRAG AND DROP =====
+  let dragState = null;
+
+  function initDragAndDrop() {
+    // Set up draggable rows/cards
+    document.querySelectorAll('[data-habit-id]').forEach(el => {
+      el.addEventListener('dragstart', handleDragStart);
+      el.addEventListener('dragover', handleDragOver);
+      el.addEventListener('dragleave', handleDragLeave);
+      el.addEventListener('drop', handleDrop);
+      el.addEventListener('dragend', handleDragEnd);
+    });
+
+    // Only the drag handle initiates a drag (so clicking cells/buttons doesn't trigger it)
+    document.querySelectorAll('[data-drag-handle]').forEach(handle => {
+      handle.addEventListener('mousedown', () => {
+        const row = handle.closest('[data-habit-id]');
+        if (row) row.setAttribute('draggable', 'true');
+      });
+      handle.addEventListener('mouseup', () => {
+        const row = handle.closest('[data-habit-id]');
+        if (row) row.setAttribute('draggable', 'false');
+      });
+
+      // Touch support for mobile
+      handle.addEventListener('touchstart', handleTouchStart, { passive: false });
+    });
+  }
+
+  function handleDragStart(e) {
+    const el = e.currentTarget;
+    const habitId = el.dataset.habitId;
+    const habitType = el.dataset.habitType;
+    dragState = { habitId, habitType, sourceEl: el };
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', habitId);
+  }
+
+  function handleDragOver(e) {
+    if (!dragState) return;
+    const el = e.currentTarget;
+    // Only allow drop on same type (daily with daily, weekly with weekly)
+    if (el.dataset.habitType !== dragState.habitType) return;
+    if (el === dragState.sourceEl) return;
+
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    // Determine if dropping above or below based on mouse position
+    const rect = el.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    el.classList.remove('drag-over-above', 'drag-over-below');
+    if (e.clientY < midpoint) {
+      el.classList.add('drag-over-above');
+    } else {
+      el.classList.add('drag-over-below');
+    }
+  }
+
+  function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over-above', 'drag-over-below');
+  }
+
+  function handleDrop(e) {
+    if (!dragState) return;
+    e.preventDefault();
+    const el = e.currentTarget;
+    if (el.dataset.habitType !== dragState.habitType) return;
+    if (el === dragState.sourceEl) return;
+
+    const rect = el.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    const dropAbove = e.clientY < midpoint;
+
+    reorderHabit(dragState.habitId, el.dataset.habitId, dropAbove);
+  }
+
+  function handleDragEnd(e) {
+    if (dragState && dragState.sourceEl) {
+      dragState.sourceEl.classList.remove('dragging');
+    }
+    document.querySelectorAll('.drag-over-above, .drag-over-below').forEach(el => {
+      el.classList.remove('drag-over-above', 'drag-over-below');
+    });
+    document.querySelectorAll('[data-habit-id]').forEach(el => {
+      el.setAttribute('draggable', 'false');
+    });
+    dragState = null;
+  }
+
+  // Touch-based drag for mobile
+  function handleTouchStart(e) {
+    const handle = e.currentTarget;
+    const row = handle.closest('[data-habit-id]');
+    if (!row) return;
+
+    e.preventDefault();
+    const habitId = row.dataset.habitId;
+    const habitType = row.dataset.habitType;
+    const touch = e.touches[0];
+    const startY = touch.clientY;
+
+    row.classList.add('dragging');
+
+    function getAllSiblings() {
+      return Array.from(document.querySelectorAll(`[data-habit-type="${habitType}"]`));
+    }
+
+    function onTouchMove(ev) {
+      ev.preventDefault();
+      const t = ev.touches[0];
+      // Find which habit we're hovering over
+      const siblings = getAllSiblings();
+      let hoveredEl = null;
+      let dropAbove = false;
+      for (const sib of siblings) {
+        if (sib === row) continue;
+        const r = sib.getBoundingClientRect();
+        if (t.clientY >= r.top && t.clientY <= r.bottom) {
+          hoveredEl = sib;
+          dropAbove = t.clientY < r.top + r.height / 2;
+          break;
+        }
+      }
+      // Clear all indicators
+      siblings.forEach(s => s.classList.remove('drag-over-above', 'drag-over-below'));
+      if (hoveredEl) {
+        hoveredEl.classList.add(dropAbove ? 'drag-over-above' : 'drag-over-below');
+        row.dataset.touchTarget = hoveredEl.dataset.habitId;
+        row.dataset.touchDropAbove = dropAbove;
+      } else {
+        delete row.dataset.touchTarget;
+      }
+    }
+
+    function onTouchEnd() {
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+
+      const targetId = row.dataset.touchTarget;
+      const dropAbove = row.dataset.touchDropAbove === 'true';
+      delete row.dataset.touchTarget;
+      delete row.dataset.touchDropAbove;
+
+      row.classList.remove('dragging');
+      document.querySelectorAll('.drag-over-above, .drag-over-below').forEach(el => {
+        el.classList.remove('drag-over-above', 'drag-over-below');
+      });
+
+      if (targetId) {
+        reorderHabit(habitId, targetId, dropAbove);
+      }
+    }
+
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+  }
+
+  async function reorderHabit(draggedId, targetId, dropAbove) {
+    const user = state.users[state.currentUser];
+    if (!user) return;
+
+    const dragged = user.habits.find(h => h.id === draggedId);
+    if (!dragged) return;
+
+    // Get all habits of the same type in current order
+    const sameType = user.habits
+      .filter(h => h.type === dragged.type)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+    // Remove dragged from list
+    const withoutDragged = sameType.filter(h => h.id !== draggedId);
+
+    // Find target index
+    const targetIdx = withoutDragged.findIndex(h => h.id === targetId);
+    if (targetIdx === -1) return;
+
+    // Insert dragged at new position
+    const insertIdx = dropAbove ? targetIdx : targetIdx + 1;
+    withoutDragged.splice(insertIdx, 0, dragged);
+
+    // Reassign sort_order values (0, 1000, 2000, ...)
+    withoutDragged.forEach((h, idx) => {
+      h.sort_order = idx * 1000;
+    });
+
+    // Re-sort the full habits list locally so render shows new order
+    user.habits.sort((a, b) => {
+      if (a.type !== b.type) return 0;
+      return (a.sort_order || 0) - (b.sort_order || 0);
+    });
+
+    await withSync(async () => {
+      await dbUpdateSortOrders(withoutDragged);
+    });
+    render();
+  }
   (async function boot() {
     loadLocalPrefs();
     applyTheme();
