@@ -377,8 +377,130 @@
     border-bottom: 2px solid var(--accent);
   }
 
+  /* ===== Mobile card view for daily habits ===== */
+  .mobile-daily-list {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 2rem;
+  }
+  .mobile-habit-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .mobile-habit-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    min-width: 0;
+  }
+  .mobile-habit-name {
+    font-size: 15px;
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.005em;
+  }
+  .mobile-dots-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .mobile-dot-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 2px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .mobile-dot-cell:hover {
+    background: var(--surface-alt);
+  }
+  .mobile-dot-cell.today {
+    background: var(--today-accent);
+  }
+  .mobile-dot-cell.readonly {
+    cursor: default;
+  }
+  .mobile-dot-cell.readonly:hover {
+    background: transparent;
+  }
+  .mobile-dot-cell.readonly.today:hover {
+    background: var(--today-accent);
+  }
+  .mobile-dot-label {
+    font-size: 10px;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .mobile-dot-cell.today .mobile-dot-label {
+    color: var(--text-muted);
+  }
+  .mobile-dot-num {
+    font-size: 11px;
+    color: var(--text-soft);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .mobile-dot-cell.today .mobile-dot-num {
+    color: var(--text);
+  }
+  .mobile-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface-alt);
+    border: 1.5px solid var(--border-med);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .mobile-dot.done {
+    background: var(--done-bg);
+    border-color: var(--done-check);
+  }
+  .mobile-dot-cell.today .mobile-dot {
+    width: 28px;
+    height: 28px;
+    border-width: 2px;
+    border-color: var(--text-muted);
+  }
+  .mobile-dot-cell.today .mobile-dot.done {
+    border-color: var(--done-check);
+  }
+  .mobile-dot-check {
+    width: 12px;
+    height: 12px;
+    stroke: var(--done-check);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+  .mobile-dot-cell.today .mobile-dot-check {
+    width: 14px;
+    height: 14px;
+  }
+
   @media (max-width: 720px) {
-    .drag-handle { opacity: 0.5; }
+    /* Hide desktop grid on mobile */
+    .grid-wrapper { display: none; }
+    /* Show mobile card list instead */
+    .mobile-daily-list { display: flex; }
   }
 
   .weekly-list { display: flex; flex-direction: column; gap: 8px; }
@@ -1335,6 +1457,38 @@
               }).join('')}
             </tbody>
           </table>
+        </div>
+
+        <div class="mobile-daily-list">
+          ${dailyHabits.map(h => {
+            const streak = dailyStreak(user, h.id);
+            return `<div class="mobile-habit-card" data-habit-id="${h.id}" data-habit-type="daily">
+              <div class="mobile-habit-header">
+                ${isMe ? `<span class="drag-handle" data-drag-handle title="Drag to reorder">⋮⋮</span>` : ''}
+                <span class="mobile-habit-name">${escapeHtml(h.name)}</span>
+                ${streak > 0 ? `<span class="badge-inline streak">🔥 ${streak}</span>` : ''}
+                ${isMe ? `<button class="habit-edit-btn" data-action="edit-habit" data-arg="${h.id}" style="opacity: 1;">Edit</button>` : ''}
+              </div>
+              <div class="mobile-dots-row">
+                ${days.map((d, i) => {
+                  const dStr = dateStr(d);
+                  const isToday = dStr === todayS;
+                  const done = !!(user.checkins[h.id] && user.checkins[h.id][dStr]);
+                  const cellClasses = ['mobile-dot-cell'];
+                  if (isToday) cellClasses.push('today');
+                  if (!isMe) cellClasses.push('readonly');
+                  const clickAttr = isMe ? `data-action="toggle-day" data-arg="${h.id}" data-arg2="${dStr}"` : '';
+                  return `<div class="${cellClasses.join(' ')}" ${clickAttr}>
+                    <span class="mobile-dot-label">${dayNames[i].charAt(0)}</span>
+                    <span class="mobile-dot-num">${d.getDate()}</span>
+                    <div class="mobile-dot ${done ? 'done' : ''}">
+                      ${done ? '<svg class="mobile-dot-check" viewBox="0 0 24 24"><polyline points="5 12 10 17 19 7"/></svg>' : ''}
+                    </div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>`;
+          }).join('')}
         </div>
       ` : `<div class="empty-state">No daily habits yet${isMe ? '. Click "+ Add" to start.' : '.'}</div>`}
 
