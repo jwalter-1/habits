@@ -1759,6 +1759,7 @@
         currentUser = user;
         document.getElementById('loginScreen').classList.add('hidden');
         await loadUserProfile();
+        await fixMisdatedEntries();
         await renderAll();
         initTheme();
         updateGreeting();
@@ -2763,6 +2764,30 @@
       if (document.activeElement === input && input.value.trim()) saveEntry();
     }
   });
+
+  // =========================================
+  //  ONE-TIME FIX: entries saved with UTC date instead of local date
+  //  Safe to remove after running once (2026-04-29)
+  // =========================================
+  async function fixMisdatedEntries() {
+    if (!currentUser) return;
+    if (localStorage.getItem('grateful_date_fix_done')) return;
+    try {
+      const entries = await pgGet('entries', 'select=id,date,created_at&user_id=eq.' + currentUser.id + '&date=eq.2026-04-29');
+      for (const e of entries) {
+        const createdLocal = new Date(e.created_at);
+        const localDate = createdLocal.getFullYear() + '-' + String(createdLocal.getMonth() + 1).padStart(2, '0') + '-' + String(createdLocal.getDate()).padStart(2, '0');
+        if (localDate === '2026-04-28' && e.date === '2026-04-29') {
+          console.log('[fix] Correcting entry', e.id, 'from 2026-04-29 to 2026-04-28');
+          await pgPatch('entries', 'id=eq.' + e.id, { date: '2026-04-28' });
+        }
+      }
+      localStorage.setItem('grateful_date_fix_done', '1');
+      console.log('[fix] Date correction complete');
+    } catch (err) {
+      console.error('[fix] Date correction failed:', err);
+    }
+  }
 
   // =========================================
   //  INIT
