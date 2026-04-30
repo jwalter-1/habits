@@ -777,6 +777,103 @@
     .ring-card { padding: 18px; gap: 16px; }
     .habit-edit-btn { opacity: 1; }
   }
+
+  /* ===== Mini ring styles (shared desktop + mobile) ===== */
+  .mini-ring-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mini-ring-label {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  /* Desktop: per-day summary row at bottom of grid */
+  .grid-summary-row td {
+    padding: 10px 0;
+    text-align: center;
+    vertical-align: middle;
+    background: var(--surface-alt);
+  }
+  .grid-summary-row td.habit-col-summary {
+    text-align: left;
+    padding-left: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Desktop: per-habit weekly ring column */
+  .grid-table th.habit-week-ring-col {
+    width: 56px;
+    text-align: center;
+    font-size: 10px;
+  }
+  .grid-table td.habit-week-ring-cell {
+    text-align: center;
+    vertical-align: middle;
+    padding: 6px 4px;
+    background: var(--surface-alt);
+    border-left: 1px solid var(--border);
+  }
+
+  /* Mobile: per-day summary rings strip */
+  .mobile-day-summary {
+    display: none;
+  }
+  @media (max-width: 720px) {
+    .mobile-day-summary {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+  }
+  .mobile-day-summary-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .mobile-day-summary-label {
+    font-size: 9px;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .mobile-day-summary-cell.today .mobile-day-summary-label {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* Mobile: per-habit weekly ring on each card */
+  .mobile-habit-ring {
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-habit-ring-label {
+    position: absolute;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -1195,6 +1292,23 @@
     `;
   }
 
+
+  function renderMiniRing(done, total, color, size, stroke) {
+    size = size || 32;
+    stroke = stroke || 3.5;
+    var pct = total === 0 ? 0 : Math.round((done / total) * 100);
+    var radius = (size - stroke) / 2;
+    var circumference = 2 * Math.PI * radius;
+    var offset = circumference - (pct / 100) * circumference;
+    return '<div class="mini-ring-wrap" title="' + done + ' / ' + total + '">' +
+      '<svg width="' + size + '" height="' + size + '" style="transform: rotate(-90deg);">' +
+        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + radius + '" fill="none" stroke="var(--ring-track)" stroke-width="' + stroke + '" />' +
+        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" style="transition: stroke-dashoffset 0.6s ease;" />' +
+      '</svg>' +
+      '<span class="mini-ring-label">' + done + '</span>' +
+    '</div>';
+  }
+
   function showModal(title, bodyHtml, onSubmit) {
     modalContainer.innerHTML = `
       <div class="modal-overlay" id="modal-overlay">
@@ -1512,6 +1626,7 @@
                     <span class="day-header-num">${d.getDate()}</span>
                   </th>`;
                 }).join('')}
+                <th class="habit-week-ring-col">Week</th>
               </tr>
             </thead>
             <tbody>
@@ -1537,9 +1652,25 @@
                     const clickAttr = isMe ? `data-action="toggle-day" data-arg="${h.id}" data-arg2="${dStr}"` : '';
                     return `<td class="${cellClasses.join(' ')}" ${clickAttr}>${done ? '<svg class="check-svg" viewBox="0 0 24 24"><polyline points="5 12 10 17 19 7"/></svg>' : ''}</td>`;
                   }).join('')}
+                  <td class="habit-week-ring-cell">${(() => {
+                    const doneCount = days.filter(d => !!(user.checkins[h.id] && user.checkins[h.id][dateStr(d)])).length;
+                    return renderMiniRing(doneCount, 7, 'var(--ring-daily)');
+                  })()}</td>
                 </tr>`;
               }).join('')}
             </tbody>
+            <tfoot>
+              <tr class="grid-summary-row">
+                <td class="habit-col-summary">Daily total</td>
+                ${days.map((d, i) => {
+                  const dStr = dateStr(d);
+                  const doneCount = dailyHabits.filter(h => !!(user.checkins[h.id] && user.checkins[h.id][dStr])).length;
+                  const isToday = dStr === todayS;
+                  return '<td' + (isToday ? ' class="today"' : '') + '>' + renderMiniRing(doneCount, dailyHabits.length, 'var(--ring-daily)') + '</td>';
+                }).join('')}
+                <td class="habit-week-ring-cell"></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 
@@ -1552,6 +1683,10 @@
                 <span class="mobile-habit-name">${escapeHtml(h.name)}</span>
                 ${streak > 0 ? `<span class="badge-inline streak">🔥 ${streak}</span>` : ''}
                 ${isMe ? `<button class="habit-edit-btn" data-action="edit-habit" data-arg="${h.id}" style="opacity: 1;">Edit</button>` : ''}
+                <div class="mobile-habit-ring">${(() => {
+                  const doneCount = days.filter(d => !!(user.checkins[h.id] && user.checkins[h.id][dateStr(d)])).length;
+                  return renderMiniRing(doneCount, 7, 'var(--ring-daily)', 30, 3);
+                })()}</div>
               </div>
               <div class="mobile-dots-row">
                 ${days.map((d, i) => {
@@ -1571,6 +1706,18 @@
                   </div>`;
                 }).join('')}
               </div>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <div class="mobile-day-summary">
+          ${days.map((d, i) => {
+            const dStr = dateStr(d);
+            const doneCount = dailyHabits.filter(h => !!(user.checkins[h.id] && user.checkins[h.id][dStr])).length;
+            const isToday = dStr === todayS;
+            return `<div class="mobile-day-summary-cell ${isToday ? 'today' : ''}">
+              <span class="mobile-day-summary-label">${dayNames[i].charAt(0)}</span>
+              ${renderMiniRing(doneCount, dailyHabits.length, 'var(--ring-daily)', 30, 3)}
             </div>`;
           }).join('')}
         </div>
