@@ -39,6 +39,8 @@
     --info-text: #4a6b8f;
     --today-accent: #f5ead4;
     --danger: #b54e4e;
+    --ring-caution: #d4c06a;
+    --ring-warn: #c97a6a;
     --shadow-sm: 0 1px 2px rgba(20,20,20,0.03);
     --shadow-md: 0 2px 8px rgba(20,20,20,0.04);
     --radius: 10px;
@@ -74,6 +76,8 @@
     --info-bg: #283340;
     --info-text: #a3bcd8;
     --today-accent: #403824;
+    --ring-caution: #b8a84e;
+    --ring-warn: #b06858;
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.15);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.2);
   }
@@ -558,7 +562,7 @@
 
   .weekly-list {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr 180px;
     gap: 8px 0;
     align-items: center;
   }
@@ -1299,13 +1303,15 @@
     size = size || 32;
     stroke = stroke || 3.5;
     var pct = total === 0 ? 0 : Math.round((done / total) * 100);
+    // Color-code by completion: green >= 70%, yellow 40-69%, red < 40%
+    var ringColor = pct >= 70 ? 'var(--ring-daily)' : pct >= 40 ? 'var(--ring-caution)' : 'var(--ring-warn)';
     var radius = (size - stroke) / 2;
     var circumference = 2 * Math.PI * radius;
     var offset = circumference - (pct / 100) * circumference;
     return '<div class="mini-ring-wrap" title="' + done + ' / ' + total + '">' +
       '<svg width="' + size + '" height="' + size + '" style="transform: rotate(-90deg);">' +
         '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + radius + '" fill="none" stroke="var(--ring-track)" stroke-width="' + stroke + '" />' +
-        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + radius + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" style="transition: stroke-dashoffset 0.6s ease;" />' +
+        '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + radius + '" fill="none" stroke="' + ringColor + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + circumference + '" stroke-dashoffset="' + offset + '" style="transition: stroke-dashoffset 0.6s ease;" />' +
       '</svg>' +
       '<span class="mini-ring-label">' + done + '</span>' +
     '</div>';
